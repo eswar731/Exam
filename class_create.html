@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Class - Exam_Web</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <style>
+        .create-class-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background-color: var(--background-color);
+        }
+        
+        .create-class-form {
+            background-color: var(--surface-color);
+            padding: 2.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .form-header img {
+            height: 50px;
+            margin-bottom: 1rem;
+        }
+        
+        .form-header h1 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-header p {
+            color: var(--text-secondary);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .code-display {
+            background-color: #f8fafc;
+            border: 2px solid var(--primary-color);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            font-family: monospace;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .success-message {
+            background-color: #dcfce7;
+            color: #166534;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .success-message.show {
+            display: block;
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        
+        .back-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="create-class-container">
+        <div class="create-class-form">
+            <div class="form-header">
+                <img src="assets/logo.png" alt="Exam_Web Logo">
+                <h1>Create New Class</h1>
+                <p>Set up a new class for your students</p>
+            </div>
+            
+            <form id="createClassForm">
+                <div class="form-group">
+                    <label for="className">Class Name *</label>
+                    <input type="text" id="className" name="className" required placeholder="e.g., Physics 12A">
+                </div>
+                
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" name="subject" placeholder="e.g., Physics">
+                </div>
+                
+                <div class="form-group">
+                    <label>Moderation Settings</label>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="moderationToggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span>Require approval for students joining</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Class Code</label>
+                    <div class="code-display" id="classCode">GENERATING...</div>
+                    <small>This code will be shared with students to join the class</small>
+                </div>
+                
+                <button type="submit" class="btn-primary" style="width: 100%;">Create Class</button>
+                
+                <div id="successMessage" class="success-message">
+                    Class created successfully! Your students can now join using the code above.
+                </div>
+            </form>
+            
+            <div class="back-link">
+                <a href="teacher_dashboard.html">← Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Generate random class code
+        function generateClassCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        // Initialize class code
+        const classCode = generateClassCode();
+        document.getElementById('classCode').textContent = classCode;
+
+        // Handle form submission
+        document.getElementById('createClassForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const className = document.getElementById('className').value.trim();
+            const subject = document.getElementById('subject').value.trim();
+            const moderation = document.getElementById('moderationToggle').checked;
+            
+            if (!className) {
+                alert('Please enter a class name');
+                return;
+            }
+            
+            // Create class object
+            const newClass = {
+                id: Date.now(),
+                name: className,
+                subject: subject,
+                code: classCode,
+                moderation: moderation,
+                students: [],
+                createdAt: new Date().toISOString()
+            };
+            
+            // Store in localStorage
+            let teacherClasses = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            teacherClasses.push(newClass);
+            localStorage.setItem('teacherClasses', JSON.stringify(teacherClasses));
+            
+            // Show success message
+            document.getElementById('successMessage').classList.add('show');
+            
+            // Clear form
+            document.getElementById('className').value = '';
+            document.getElementById('subject').value = '';
+            document.getElementById('moderationToggle').checked = false;
+            
+            // Generate new code for next class
+            setTimeout(() => {
+                document.getElementById('successMessage').classList.remove('show');
+                document.getElementById('classCode').textContent = generateClassCode();
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

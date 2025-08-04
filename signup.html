@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Exam_Web</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+</head>
+<body>
+    <div class="form-container">
+        <img src="assets/logo.png" alt="Exam_Web Logo" class="form-logo">
+        <h1>Create Your Account</h1>
+        <form id="signupForm">
+            <div class="form-group">
+                <label>Role</label>
+                <div class="role-selection">
+                    <label class="radio-option">
+                        <input type="radio" name="role" value="student" required>
+                        <span>Student</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="role" value="teacher" required>
+                        <span>Teacher</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" required>
+                <small>10 digits without spaces or dashes</small>
+            </div>
+            
+            <div class="form-group">
+                <button type="button" id="requestOtpBtn" class="btn-secondary" onclick="requestOTP()">
+                    Request OTP
+                </button>
+                <span id="otpCountdown" class="countdown"></span>
+            </div>
+            
+            <div class="form-group">
+                <label for="otp">OTP</label>
+                <input type="text" id="otp" name="otp" pattern="[0-9]{6}" disabled required>
+                <small>6-digit code sent to your phone</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+                <small>Min 8 chars, 1 number, 1 special character</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="checkbox-option">
+                    <input type="checkbox" id="terms" required>
+                    <span>I agree to the <a href="#">terms and conditions</a></span>
+                </label>
+            </div>
+            
+            <button type="submit" class="btn-primary">Sign Up</button>
+            
+            <div id="error-message" class="error-message"></div>
+            <div id="success-message" class="success-message"></div>
+        </form>
+        
+        <p class="form-footer">
+            Already have an account? <a href="login.html">Login</a>
+        </p>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        let otpRequested = false;
+        let countdownInterval;
+
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const role = document.querySelector('input[name="role"]:checked').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const otp = document.getElementById('otp').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Clear messages
+            clearMessages();
+            
+            // Validate email
+            if (!validateEmail(email)) {
+                showError('Please enter a valid email address');
+                return;
+            }
+            
+            // Validate phone
+            if (!validatePhone(phone)) {
+                showError('Please enter a valid 10-digit phone number');
+                return;
+            }
+            
+            // Validate OTP
+            if (!otpRequested || otp.length !== 6) {
+                showError('Please request and enter a valid 6-digit OTP');
+                return;
+            }
+            
+            // Validate password strength
+            if (!validatePassword(password)) {
+                showError('Password must be at least 8 characters with 1 number and 1 special character');
+                return;
+            }
+            
+            // Validate password match
+            if (password !== confirmPassword) {
+                showError('Passwords do not match');
+                return;
+            }
+            
+            // Validate terms
+            if (!document.getElementById('terms').checked) {
+                showError('Please agree to the terms and conditions');
+                return;
+            }
+            
+            // Store role info and redirect
+            localStorage.setItem('userRole', role);
+            localStorage.setItem('userEmail', email);
+            
+            showSuccess('Account created successfully! Redirecting...');
+            setTimeout(() => {
+                window.location.href = 'otp_verify.html';
+            }, 2000);
+        });
+
+        function requestOTP() {
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            
+            if (!validateEmail(email) || !validatePhone(phone)) {
+                showError('Please enter valid email and phone number first');
+                return;
+            }
+            
+            const btn = document.getElementById('requestOtpBtn');
+            const countdown = document.getElementById('otpCountdown');
+            
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            
+            // Simulate OTP sending
+            setTimeout(() => {
+                btn.textContent = 'OTP Sent';
+                otpRequested = true;
+                document.getElementById('otp').disabled = false;
+                
+                // Start countdown
+                let seconds = 60;
+                countdown.textContent = `Resend in ${seconds}s`;
+                
+                countdownInterval = setInterval(() => {
+                    seconds--;
+                    countdown.textContent = `Resend in ${seconds}s`;
+                    
+                    if (seconds <= 0) {
+                        clearInterval(countdownInterval);
+                        btn.disabled = false;
+                        btn.textContent = 'Resend OTP';
+                        countdown.textContent = '';
+                    }
+                }, 1000);
+            }, 1000);
+        }
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function validatePhone(phone) {
+            return phone.length === 10 && /^\d+$/.test(phone);
+        }
+
+        function validatePassword(password) {
+            return password.length >= 8 && 
+                   /\d/.test(password) && 
+                   /[!@#$%^&*(),.?":{}|<>]/.test(password);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.classList.add('show');
+        }
+
+        function clearMessages() {
+            document.getElementById('error-message').classList.remove('show');
+            document.getElementById('success-message').classList.remove('show');
+        }
+    </script>
+</body>
+</html>

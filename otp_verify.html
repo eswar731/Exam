@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP - Exam_Web</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+</head>
+<body>
+    <div class="form-container">
+        <img src="assets/logo.png" alt="Exam_Web Logo" class="form-logo">
+        <h1>Verify Your Identity</h1>
+        <p class="form-subtitle">Enter the 6-digit OTP sent to your phone</p>
+        
+        <form id="otpForm">
+            <div class="form-group">
+                <label for="otp">OTP Code</label>
+                <input type="text" id="otp" name="otp" pattern="[0-9]{6}" maxlength="6" required>
+                <small>6-digit verification code</small>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn-primary">Verify OTP</button>
+            </div>
+            
+            <div class="form-links">
+                <p>Didn't receive the code? 
+                    <button type="button" id="resendBtn" class="link-button" onclick="resendOTP()" disabled>
+                        Resend OTP
+                    </button>
+                </p>
+                <p id="countdown" class="countdown">00:30</p>
+            </div>
+            
+            <div id="error-message" class="error-message"></div>
+            <div id="success-message" class="success-message"></div>
+        </form>
+        
+        <p class="form-footer">
+            <a href="signup.html">Back to Sign Up</a>
+        </p>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        let countdownInterval;
+        let timeLeft = 30;
+
+        // Start countdown on page load
+        startCountdown();
+
+        document.getElementById('otpForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const otp = document.getElementById('otp').value;
+            const errorDiv = document.getElementById('error-message');
+            const successDiv = document.getElementById('success-message');
+            
+            // Clear messages
+            clearMessages();
+            
+            // Validate OTP
+            if (!otp || otp.length !== 6 || !/^\d+$/.test(otp)) {
+                showError('Please enter a valid 6-digit OTP');
+                return;
+            }
+            
+            // Simulate OTP verification
+            setTimeout(() => {
+                // Mock successful verification
+                const userRole = localStorage.getItem('userRole') || 'student';
+                
+                showSuccess('OTP verified successfully! Redirecting...');
+                
+                setTimeout(() => {
+                    if (userRole === 'student') {
+                        window.location.href = 'student_dashboard.html';
+                    } else {
+                        window.location.href = 'teacher_dashboard.html';
+                    }
+                }, 1500);
+            }, 1000);
+        });
+
+        function startCountdown() {
+            const countdown = document.getElementById('countdown');
+            const resendBtn = document.getElementById('resendBtn');
+            
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                countdown.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    resendBtn.disabled = false;
+                    countdown.textContent = '';
+                }
+            }, 1000);
+        }
+
+        function resendOTP() {
+            const resendBtn = document.getElementById('resendBtn');
+            const countdown = document.getElementById('countdown');
+            
+            // Reset countdown
+            timeLeft = 30;
+            resendBtn.disabled = true;
+            countdown.textContent = '00:30';
+            
+            // Simulate resending OTP
+            setTimeout(() => {
+                showSuccess('New OTP has been sent to your phone');
+                startCountdown();
+            }, 1000);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.classList.add('show');
+        }
+
+        function clearMessages() {
+            document.getElementById('error-message').classList.remove('show');
+            document.getElementById('success-message').classList.remove('show');
+        }
+    </script>
+</body>
+</html>

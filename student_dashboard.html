@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Exam_Web</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <style>
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: var(--surface-color);
+            box-shadow: var(--shadow-md);
+            padding: 2rem 1rem;
+        }
+        
+        .sidebar nav {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .sidebar a {
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: var(--text-secondary);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+        
+        .sidebar a:hover, .sidebar a.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            background-color: var(--background-color);
+        }
+        
+        .section {
+            margin-bottom: 3rem;
+        }
+        
+        .section h2 {
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+        
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .card {
+            background-color: var(--surface-color);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .card h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .badge.passed {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .badge.failed {
+            background-color: #fef2f2;
+            color: #991b1b;
+        }
+        
+        .badge.scheduled {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge.open {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge.locked {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--surface-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .table th, .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .table th {
+            background-color: var(--background-color);
+            font-weight: 600;
+        }
+        
+        .chart-container {
+            background-color: var(--surface-color);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+        }
+        
+        #performanceChart {
+            max-width: 100%;
+            height: 300px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                padding: 1rem;
+            }
+            
+            .sidebar nav {
+                flex-direction: row;
+                overflow-x: auto;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <img src="assets/logo.png" alt="Exam_Web Logo" class="logo" style="margin-bottom: 2rem;">
+            <nav>
+                <a href="#" class="active">Home</a>
+                <a href="#">Classes</a>
+                <a href="#">Exams</a>
+                <a href="#">Results</a>
+                <a href="index.html">Logout</a>
+            </nav>
+        </aside>
+        
+        <main class="main-content">
+            <header style="margin-bottom: 2rem;">
+                <h1>Welcome, Student</h1>
+                <p>Manage your classes and track your progress</p>
+            </header>
+            
+            <section class="section">
+                <h2>Joined Classes</h2>
+                <div class="cards-grid" id="classesGrid">
+                    <!-- Classes will be populated by JavaScript -->
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2>Upcoming Exams</h2>
+                <div id="upcomingExams">
+                    <!-- Upcoming exams will be populated by JavaScript -->
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2>Past Exams</h2>
+                <div id="pastExams">
+                    <!-- Past exams will be populated by JavaScript -->
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2>Performance Graph</h2>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Sample data
+        const classes = [
+            { id: 1, name: "Physics 12A", teacher: "Mr. Ram", subject: "Physics" },
+            { id: 2, name: "Maths 10B", teacher: "Ms. Neha", subject: "Mathematics" },
+            { id: 3, name: "Chemistry 11C", teacher: "Dr. Kumar", subject: "Chemistry" }
+        ];
+
+        const upcomingExams = [
+            { id: 1, name: "Unit Test 1", class: "Physics 12A", date: "2025-08-10", status: "Scheduled" },
+            { id: 2, name: "Quiz - Algebra", class: "Maths 10B", date: "2025-08-12", status: "Open" },
+            { id: 3, name: "Chemistry Lab", class: "Chemistry 11C", date: "2025-08-15", status: "Locked" }
+        ];
+
+        const pastExams = [
+            { id: 1, name: "Pre-Mid Physics", score: 82, date: "2025-07-28", result: "Passed" },
+            { id: 2, name: "Algebra Quiz", score: 45, date: "2025-07-20", result: "Failed" },
+            { id: 3, name: "Chemistry Test", score: 78, date: "2025-07-25", result: "Passed" }
+        ];
+
+        // Render classes
+        function renderClasses() {
+            const classesGrid = document.getElementById('classesGrid');
+            
+            if (classes.length === 0) {
+                classesGrid.innerHTML = '<div class="empty-state">No classes joined yet</div>';
+                return;
+            }
+
+            classesGrid.innerHTML = classes.map(cls => `
+                <div class="card">
+                    <h3>${cls.name}</h3>
+                    <p><strong>Subject:</strong> ${cls.subject}</p>
+                    <p><strong>Teacher:</strong> ${cls.teacher}</p>
+                    <button class="btn-secondary" style="margin-top: 1rem;">Leave Class</button>
+                </div>
+            `).join('');
+        }
+
+        // Render upcoming exams
+        function renderUpcomingExams() {
+            const upcomingExamsDiv = document.getElementById('upcomingExams');
+            
+            if (upcomingExams.length === 0) {
+                upcomingExamsDiv.innerHTML = '<div class="empty-state">No upcoming exams</div>';
+                return;
+            }
+
+            upcomingExamsDiv.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Exam Name</th>
+                            <th>Class</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${upcomingExams.map(exam => `
+                            <tr>
+                                <td>${exam.name}</td>
+                                <td>${exam.class}</td>
+                                <td>${exam.date}</td>
+                                <td><span class="badge ${exam.status.toLowerCase()}">${exam.status}</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Render past exams
+        function renderPastExams() {
+            const pastExamsDiv = document.getElementById('pastExams');
+            
+            if (pastExams.length === 0) {
+                pastExamsDiv.innerHTML = '<div class="empty-state">No past exams</div>';
+                return;
+            }
+
+            pastExamsDiv.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Exam Name</th>
+                            <th>Date</th>
+                            <th>Score</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pastExams.map(exam => `
+                            <tr>
+                                <td>${exam.name}</td>
+                                <td>${exam.date}</td>
+                                <td>${exam.score}%</td>
+                                <td><span class="badge ${exam.result.toLowerCase()}">${exam.result}</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Render performance chart
+        function renderPerformanceChart() {
+            const canvas = document.getElementById('performanceChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 300;
+            
+            const scores = pastExams.map(exam => exam.score);
+            const labels = pastExams.map(exam => exam.name);
+            
+            if (scores.length === 0) {
+                ctx.fillStyle = '#64748b';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('No performance data available', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            // Chart dimensions
+            const padding = 40;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+            
+            // Draw axes
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+            
+            // Draw data points and lines
+            const maxScore = 100;
+            const stepX = chartWidth / (scores.length - 1 || 1);
+            
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            scores.forEach((score, index) => {
+                const x = padding + index * stepX;
+                const y = canvas.height - padding - (score / maxScore) * chartHeight;
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                
+                // Draw point
+                ctx.fillStyle = '#2563eb';
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Draw score label
+                ctx.fillStyle = '#1e293b';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(score + '%', x, y - 10);
+                
+                // Draw exam name
+                ctx.save();
+                ctx.translate(x, canvas.height - padding + 15);
+                ctx.rotate(-Math.PI / 4);
+                ctx.fillText(labels[index], 0, 0);
+                ctx.restore();
+            });
+            
+            ctx.stroke();
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            renderClasses();
+            renderUpcomingExams();
+            renderPastExams();
+            renderPerformanceChart();
+        });
+    </script>
+</body>
+</html>
